@@ -1,0 +1,25 @@
+sudo : required
+services:
+  - docker
+
+before_install:
+  - docker build nishanb/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true nishanb/react-test npm run test
+
+after_success:
+  - docker build -t nishanb/muti-client:latest -f ./client
+  - docker build -t nishanb/muti-server:latest -f ./server
+  - docker build -t nishanb/muti-worker:latest -f ./worker
+  - docker build -t nishanb/muti-worker:ngnix -f ./ngnix
+  
+  # login to docker hub
+  - echo "$PASSWORD" | docker login -u "$USER_NAME" --password-stdin
+
+  # push to docker hub
+  - docker push nishanb/muti-client:latest
+  - docker push nishanb/muti-server:latest
+  - docker push nishanb/muti-worker:latest
+  - docker push nishanb/muti-worker:ngnix
+
